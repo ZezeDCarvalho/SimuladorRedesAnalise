@@ -11,6 +11,12 @@
 #include <math.h>
 #include "fila.h"
 
+typedef struct little{
+    double tempo_anterior;
+    double soma_areas;
+    double qtd_pacotes;
+    
+}little;
 /**
  * 
  * @return numero aleatorio entre (0,1]
@@ -23,12 +29,6 @@ double aleatorio() {
 
 	return (u);
 }
-
-typedef struct little_ {
-    double tempoAnterior; //tempo do evento anterior
-    double somaAreas; //soma das areas
-    double qtdPct; //numeros eventos
-} little;
 
 /**
  * 
@@ -77,13 +77,13 @@ int main() {
 	pacote ** fim = malloc(sizeof (pacote *));
 	*inicio = NULL;
 	*fim = NULL;
-        
-        little en;
-        
-        en.qtdPct = 0.0;
-        en.somaAreas = 0.0;
-        en.tempoAnterior = 0.0;
 
+        little en;
+        en.qtd_pacotes = 0.0;
+        en.soma_areas = 0.0;
+        en.tempo_anterior = 0.0;
+        
+        
 	//iniciando a semente 
 	//para a geracao dos numeros
 	//pseudoaleatorios
@@ -173,9 +173,9 @@ int main() {
 			chegada_proximo_pct = tempo + chegada_pct(intervalo);
                         
                         //calculo little
-                        en.somaAreas += en.qtdPct * (tempo - en.tempoAnterior);
-                        en.qtdPct++;
-                        en.tempoAnterior = tempo;
+                        en.soma_areas += en.qtd_pacotes * (tempo - en.tempo_anterior);
+                        en.qtd_pacotes++;
+                        en.tempo_anterior = tempo;
 		} else if (tempo == chegada_proximo_pct_cbr) {
 			//printf("CBR chegou!\n");
 			
@@ -195,9 +195,9 @@ int main() {
 			chegada_proximo_pct_cbr += 0.02;
                         
                         //calculo little
-                        en.somaAreas += en.qtdPct * (tempo - en.tempoAnterior);
-                        en.qtdPct++;
-                        en.tempoAnterior = tempo;
+                        en.soma_areas += en.qtd_pacotes * (tempo - en.tempo_anterior);
+                        en.qtd_pacotes++;
+                        en.tempo_anterior = tempo;
 		} else {//saida de pacote
 			//printf("Saida de pacote no tempo: %lF\n", tempo);
 			remover(inicio);
@@ -212,17 +212,17 @@ int main() {
 
 				ocupacao += saida_pct_atendimento - tempo;
 			}
-                        
-                                                //calculo little
-                        en.somaAreas += en.qtdPct * (tempo - en.tempoAnterior);
-                        en.qtdPct--;
-                        en.tempoAnterior = tempo;
+                        //calculo little
+                        en.soma_areas += en.qtd_pacotes * (tempo - en.tempo_anterior);
+                        en.qtd_pacotes--;
+                        en.tempo_anterior = tempo;
 		}
 		//printf("==========================\n");
 		//getchar();
 	}
-        
 	printf("Ocupacao: %lF\n", ocupacao / tempo);
+        printf("\n=====Little=====\n");
+        printf("E[N] = %lF",(en.soma_areas/tempo));
 	//	printf("Pacotes gerados: %lF\n", cont_pcts);
 	//	printf("Media do intervalo: %lF\n", tempo/cont_pcts);	
 
