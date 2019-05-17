@@ -15,7 +15,6 @@ typedef struct little{
     double tempo_anterior;
     double soma_areas;
     double qtd_pacotes;
-    
 }little;
 /**
  * 
@@ -69,6 +68,16 @@ double minimo(double a, double b) {
 	return b;
 }
 
+/**
+ * 
+ * @param l iniciar variaveis de little
+ */
+void iniciaLittle(little *l){
+    l->qtd_pacotes = 0.0;
+    l->soma_areas = 0.0;
+    l->tempo_anterior = 0.0;
+}
+
 /*
  * 
  */
@@ -79,10 +88,13 @@ int main() {
 	*fim = NULL;
 
         little en;
-        en.qtd_pacotes = 0.0;
-        en.soma_areas = 0.0;
-        en.tempo_anterior = 0.0;
-        
+        little ewEntrada;
+        little ewSaida;
+
+        // iniciando Little
+        iniciaLittle(&en);
+        iniciaLittle(&ewEntrada);
+        iniciaLittle(&ewSaida);
         
 	//iniciando a semente 
 	//para a geracao dos numeros
@@ -172,10 +184,15 @@ int main() {
 			//gerar o tempo de chegada do proximo
 			chegada_proximo_pct = tempo + chegada_pct(intervalo);
                         
-                        //calculo little
+                        //calculo EN
                         en.soma_areas += en.qtd_pacotes * (tempo - en.tempo_anterior);
                         en.qtd_pacotes++;
                         en.tempo_anterior = tempo;
+                        
+                        //calculo EW Entrada
+                        ewEntrada.soma_areas += ewEntrada.qtd_pacotes * (tempo - ewEntrada.tempo_anterior);
+                        ewEntrada.qtd_pacotes++;
+                        ewEntrada.tempo_anterior = tempo;
 		} else if (tempo == chegada_proximo_pct_cbr) {
 			//printf("CBR chegou!\n");
 			
@@ -194,10 +211,15 @@ int main() {
 			//gerar o tempo de chegada do proximo
 			chegada_proximo_pct_cbr += 0.02;
                         
-                        //calculo little
+                        //calculo EN
                         en.soma_areas += en.qtd_pacotes * (tempo - en.tempo_anterior);
                         en.qtd_pacotes++;
                         en.tempo_anterior = tempo;
+                        
+                        //calculo EW Entrada
+                        ewEntrada.soma_areas += ewEntrada.qtd_pacotes * (tempo - ewEntrada.tempo_anterior);
+                        ewEntrada.qtd_pacotes++;
+                        ewEntrada.tempo_anterior = tempo;
 		} else {//saida de pacote
 			//printf("Saida de pacote no tempo: %lF\n", tempo);
 			remover(inicio);
@@ -212,17 +234,35 @@ int main() {
 
 				ocupacao += saida_pct_atendimento - tempo;
 			}
-                        //calculo little
+                        //calculo EN
                         en.soma_areas += en.qtd_pacotes * (tempo - en.tempo_anterior);
                         en.qtd_pacotes--;
                         en.tempo_anterior = tempo;
+                        
+                        //calculo EW Saida
+                        ewSaida.soma_areas += ewSaida.qtd_pacotes * (tempo - ewSaida.tempo_anterior);
+                        ewSaida.qtd_pacotes++;
+                        ewSaida.tempo_anterior = tempo;
 		}
 		//printf("==========================\n");
 		//getchar();
 	}
+        ewEntrada.soma_areas += ewEntrada.qtd_pacotes * (tempo - ewEntrada.tempo_anterior);
+        ewSaida.soma_areas += ewSaida.qtd_pacotes * (tempo - ewSaida.tempo_anterior);
+        
+        double enLittle = en.soma_areas/tempo;
+        double ew = ewEntrada.soma_areas - ewSaida.soma_areas;
+        ew = ew/ewEntrada.qtd_pacotes;
+        
+        double lambda = ewEntrada.qtd_pacotes/tempo;
+        
 	printf("Ocupacao: %lF\n", ocupacao / tempo);
         printf("\n=====Little=====\n");
-        printf("E[N] = %lF",(en.soma_areas/tempo));
+        printf("E[N] = %lF",enLittle);
+        printf("\nE[W] = %lF",ew);
+        printf("\nLambda = %lF",lambda);
+        printf("\n\n===== Validação Little :  %.20lF =====\n", (lambda*ew) - enLittle);
+        
 	//	printf("Pacotes gerados: %lF\n", cont_pcts);
 	//	printf("Media do intervalo: %lF\n", tempo/cont_pcts);	
 
